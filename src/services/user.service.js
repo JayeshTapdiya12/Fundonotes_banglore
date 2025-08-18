@@ -24,3 +24,26 @@ export const signUp = async (body) => {
 
   }
 }
+
+
+
+export const login = async (body) => {
+  const data = await Users.findOne({ where: { email: body.email } });
+
+  if (!data) {
+    return 'the email id doesnt exist'
+  } else {
+    const password_isvalid = await bcrypt.compare(body.password, data.password);
+    if (password_isvalid) {
+
+      const token = await jwt.sign({ username: data.firstname, email: data.email, user_id: data.user_id }, process.env.jwt_sceret_key)
+
+      return token
+    } else {
+      throw new Error("the password is incorrect");
+    }
+  }
+
+
+
+}
