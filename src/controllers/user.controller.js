@@ -32,3 +32,21 @@ export const signUp = async (req, res, next) => {
     })
   }
 }
+
+
+export const login = async (req, res, next) => {
+  try {
+    const data = await userService.login(req.body);
+    res.status(httpStatus.ACCEPTED).json({
+      code: httpStatus.ACCEPTED,
+      data: data,
+      message: "succefully login"
+    })
+
+  } catch (error) {
+    res.status(httpStatus.BAD_GATEWAY).json({
+      code: httpStatus.BAD_REQUEST,
+      message: `the error is : ${error} `
+    })
+  }
+}
