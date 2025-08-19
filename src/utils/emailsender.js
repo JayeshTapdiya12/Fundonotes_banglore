@@ -6,7 +6,6 @@ export const sendMail = async (email, token) => {
 
     console.log("EMAIL from env:", process.env.EMAIL_USER);
     console.log("PASSWORD from env:", process.env.PASSWORD_USER ? '✅ Present' : '❌ MISSING');
-    // pxvx xlqt vuyn agev
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
