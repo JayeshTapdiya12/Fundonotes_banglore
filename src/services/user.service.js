@@ -108,3 +108,30 @@ export const forgetpassword = async (body) => {
   }
 
 }
+
+
+
+
+
+export const resetpassword = async (body) => {
+
+  const { email, oldPassword, newPassword } = body;
+  const data = await Users.findOne({ where: { email: email } });
+
+  if (!data) {
+    return { code: 404, success: false, message: "User not found" };
+  }
+  const isMatch = await bcrypt.compare(oldPassword, data.password);
+  if (!isMatch) {
+    return { code: 400, success: false, message: "Old password is incorrect" };
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await Users.update({
+    password: hashedPassword
+  },
+    { where: { email: email } })
+
+  return { code: 200, success: true, message: "Password updated successfully" };
+
+} 
