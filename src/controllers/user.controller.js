@@ -41,3 +41,13 @@ export const forgetpassword = async (req, res, next) => {
     res.status(data.code).json(data);
   }
 }
+
+
+export const resetpassword = async (req, res, next) => {
+  try {
+    const data = await userService.resetpassword(req.body);
+    res.status(data.code).json(data);
+  } catch (error) {
+    res.status(data.code).json(data);
+  }
+}
