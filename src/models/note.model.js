@@ -37,7 +37,7 @@ const Notes = sequelize.define(
             type: DataTypes.INTEGER,
             allowNull: false,
             references: {
-                model: "Users",
+                model: "user",
                 key: "user_id",
             },
             onUpdate: "CASCADE",
@@ -53,4 +53,4 @@ const Notes = sequelize.define(
 Users.hasMany(Notes, { foreignKey: "createdBy" });
 Notes.belongsTo(Users, { foreignKey: "createdBy" });
 
-export default Notes;
+export { Notes };
