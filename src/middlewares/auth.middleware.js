@@ -26,10 +26,10 @@ export const userAuth = (secretKey) => {
       console.log('bearerToken after splitting---->', bearerToken);
 
       let userDetails = jwt.verify(bearerToken, secretKey);
-      req.body.createdBy = userDetails.userId;
+      req.body.createdBy = userDetails.user_id;
 
       console.log("message in authmiddle=====>", req.body.createdBy)
-      req.body.Email = userDetails.Email;
+      req.body.Email = userDetails.email;
       console.log("email", req.body.Email)
       next();
     } catch (error) {
