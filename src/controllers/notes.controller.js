@@ -67,3 +67,18 @@ export const notecolor = async (req, res, next) => {
         res.status(data.code).json(data);
     }
 }
+
+
+
+// labels
+
+
+export const getlabel = async (req, res, next) => {
+    try {
+        const data = await notesService.getlabel(req.body);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+
+    }
+}
