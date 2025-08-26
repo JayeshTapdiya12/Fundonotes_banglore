@@ -2,6 +2,8 @@ import { Notes } from '../models/note.model';
 
 import { Users } from '../models/user.model';
 
+import { Sequelize } from "sequelize";
+
 export const getallnotes = async (createdBy, email) => {
     const data = await Users.findOne({ where: { email: email } });
     try {
@@ -204,3 +206,41 @@ export const notecolor = async (body, id) => {
         }
     }
 }
+
+
+
+//labels
+
+export const getlabel = async (body) => {
+    try {
+        const data = await Notes.findAll({
+            where: { createdBy: body.createdBy }, attributes: [
+                [Sequelize.fn("DISTINCT", Sequelize.col("label")), "label"]
+            ],
+            raw: true
+        });
+
+        if (!data || data.length === 0) {
+            return {
+                code: 404,
+                message: "No labels found for this user",
+                labels: [],
+                success: false
+            }
+        }
+        return {
+            code: 200,
+            message: "Labels fetched successfully",
+            labels: data.map(item => item.label),
+            success: true
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
