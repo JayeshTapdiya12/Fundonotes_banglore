@@ -43,6 +43,18 @@ const Notes = sequelize.define(
             onUpdate: "CASCADE",
             onDelete: "CASCADE",
         },
+        label: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true
+        },
+        collaborators: {
+            type: DataTypes.ARRAY(DataTypes.STRING),
+            allowNull: true
+        },
+        reminder: {
+            type: DataTypes.ARRAY(DataTypes.DATE),
+            allowNull: true
+        }
     },
     {
         tableName: "notes",
