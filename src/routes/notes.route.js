@@ -31,10 +31,12 @@ router.delete('/:_id', userAuth(process.env.jwt_sceret_key), notesController.del
 
 // get all the label
 
-router.get('/label', userAuth(process.env.jwt_sceret_key), notesController.getlabel)
+router.get('/label', userAuth(process.env.jwt_sceret_key), notesController.getlabel);
+
+
 
 // creating the label   
-// router.post('/:_id/label', userAuth(process.env.jwt_sceret_key), notesController.addlabel);
+router.post('/:_id/label', userAuth(process.env.jwt_sceret_key), notesController.addlabel);
 
 
 
