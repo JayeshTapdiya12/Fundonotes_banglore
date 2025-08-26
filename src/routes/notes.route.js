@@ -24,19 +24,16 @@ router.delete('/:_id', userAuth(process.env.jwt_sceret_key), notesController.del
 
 
 // labels
-// giving a label to the notes and saving them seprately
-// deleteing the label
-// update label
-// get the label by user
 
 // get all the label
-
 router.get('/label', userAuth(process.env.jwt_sceret_key), notesController.getlabel);
-
-
 
 // creating the label   
 router.post('/:_id/label', userAuth(process.env.jwt_sceret_key), notesController.addlabel);
+
+// update label
+router.put('/:_id/updatelabel', userAuth(process.env.jwt_sceret_key), notesController.updatelabel);
+
 
 // delete the label
 router.post('/:_id/deletelabel', userAuth(process.env.jwt_sceret_key), notesController.deletelabel);
