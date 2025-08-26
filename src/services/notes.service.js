@@ -244,3 +244,42 @@ export const getlabel = async (body) => {
     }
 }
 
+
+
+export const addlabel = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+
+
+        if (!data) {
+            return {
+                code: 400,
+                message: "The note is not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+
+            if (Array.isArray(body.label)) {
+                labels = [...labels, ...body.label];
+            } else {
+                labels.push(body.label);
+            }
+
+            await data.update({ label: labels });
+            return {
+                code: 200,
+                message: `the label is succfully added : ${data.label}`,
+                data: data,
+                success: true,
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
