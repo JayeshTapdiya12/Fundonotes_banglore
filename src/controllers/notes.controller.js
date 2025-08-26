@@ -92,3 +92,12 @@ export const addlabel = async (req, res, next) => {
         res.status(data.code).json(data);
     }
 }
+
+export const deletelabel = async (req, res, next) => {
+    try {
+        const data = await notesService.deletelabel(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+    }
+}
