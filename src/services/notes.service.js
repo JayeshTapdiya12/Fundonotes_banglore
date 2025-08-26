@@ -249,8 +249,6 @@ export const getlabel = async (body) => {
 export const addlabel = async (body, id) => {
     try {
         const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
-
-
         if (!data) {
             return {
                 code: 400,
@@ -259,13 +257,8 @@ export const addlabel = async (body, id) => {
             }
         } else {
             let labels = data.label || [];
-
-            if (Array.isArray(body.label)) {
-                labels = [...labels, ...body.label];
-            } else {
-                labels.push(body.label);
-            }
-
+            let newLabels = Array.isArray(body.label) ? body.label : [body.label];
+            labels = [...new Set([...labels, ...newLabels])];
             await data.update({ label: labels });
             return {
                 code: 200,
@@ -278,6 +271,46 @@ export const addlabel = async (body, id) => {
         return {
             code: 500,
             message: "Internal Server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+export const deletelabel = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+            if (!labels.includes(body.label)) {
+                return {
+                    code: 404,
+                    message: `Label "${body.label}" not found in this note`,
+                    success: false
+                };
+            }
+            labels = labels.filter(l => l !== body.label);
+
+            await data.update({ label: labels });
+
+            return {
+                code: 200,
+                message: `Label "${body.label}" deleted successfully`,
+                labels,
+                success: true
+            };
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
             error: error.message,
             success: false
         }
