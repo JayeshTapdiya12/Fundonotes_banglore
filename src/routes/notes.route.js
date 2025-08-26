@@ -23,5 +23,28 @@ router.patch('/:_id/color', userAuth(process.env.jwt_sceret_key), notesControlle
 router.delete('/:_id', userAuth(process.env.jwt_sceret_key), notesController.deletenote);
 
 
+// labels
+// giving a label to the notes and saving them seprately
+// deleteing the label
+// update label
+// get the label by user
+
+// get all the label
+
+router.get('/label', userAuth(process.env.jwt_sceret_key), notesController.getlabel)
+
+// creating the label   
+// router.post('/:_id/label', userAuth(process.env.jwt_sceret_key), notesController.addlabel);
+
+
+
+
+
+// reminder
+// add remainder - date, time, repeat-no,yes-daily,weekly,monthly,yearly,customize
+// delete remainder
+
+// collabtor - object of email
+
 
 export default router;
