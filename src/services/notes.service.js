@@ -278,6 +278,48 @@ export const addlabel = async (body, id) => {
 }
 
 
+export const updatelabel = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+            if (!labels.includes(body.oldlabel)) {
+                return {
+                    code: 404,
+                    message: `Label "${body.oldlabel}" not found in this note`,
+                    success: false
+                };
+            }
+            labels = labels.map((l) => (l === body.oldlabel ? body.newlabel : l));
+            data.label = labels;
+            await data.save();
+            return {
+                code: 200,
+                message: `Label "${body.newlabel}" updated successfully`,
+                labels,
+                success: true
+            };
+
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
 export const deletelabel = async (body, id) => {
     try {
         const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
