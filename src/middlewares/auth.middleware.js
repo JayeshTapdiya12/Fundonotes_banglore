@@ -27,7 +27,14 @@ export const userAuth = (secretKey) => {
 
       let userDetails = jwt.verify(bearerToken, secretKey);
       req.body.createdBy = userDetails.user_id;
+      req.body.username = userDetails.username;
 
+      console.log('\n')
+      console.log(jwt.decode(bearerToken));
+
+      console.log("\n")
+
+      console.log("the message in au tmiddle ware the name is =======> ", req.body.username)
       console.log("message in authmiddle=====>", req.body.createdBy)
       req.body.Email = userDetails.email;
       console.log("email", req.body.Email)
