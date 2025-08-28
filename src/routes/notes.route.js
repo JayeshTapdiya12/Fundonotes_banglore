@@ -51,6 +51,10 @@ router.post('/:_id/deletelabel', userAuth(process.env.jwt_sceret_key), notesCont
 router.get('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.getcollaborators);
 
 // add the collabator:
-router.post('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.addcollaborators)
+router.post('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.addcollaborators);
+
+// delete the collaborators
+
+router.delete('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.deletecollaborators);
 
 export default router;
