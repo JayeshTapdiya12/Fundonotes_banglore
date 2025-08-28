@@ -3,6 +3,7 @@ import { Notes } from '../models/note.model';
 import { Users } from '../models/user.model';
 
 import { Sequelize } from "sequelize";
+import { sendMail } from '../utils/emailsender';
 
 export const getallnotes = async (createdBy, email) => {
     const data = await Users.findOne({ where: { email: email } });
@@ -358,3 +359,100 @@ export const deletelabel = async (body, id) => {
         }
     }
 }
+
+
+// collaborators
+
+export const getcollaborators = async (body, id) => {
+    try {
+
+        const data = await Notes.findOne({
+            where: { createdBy: body.createdBy, note_id: id },
+            attributes: ["collaborators"],
+            raw: true
+        });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                collaborators: [],
+                success: false
+            }
+        } else if (!data.collaborators || data.collaborators.length === 0) {
+
+            return {
+                code: 200,
+                message: "the note has 0 collabrators",
+                collaborators: data.collaborators || [],
+                success: true
+            }
+        }
+        else {
+            return {
+                code: 200,
+                message: "the note collabrators",
+                collaborators: data.collaborators || [],
+                success: true
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+export const addcollaborators = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "Note not found ",
+                success: false
+            }
+        } else {
+
+            if (!body.emailid || body.emailid.length === 0) {
+                return {
+                    code: 400,
+                    message: "the email is invalid || the email length =0 ",
+                    success: false
+                }
+            } else {
+
+                let collabator = data.collaborators || [];
+                let newCollaborators = Array.isArray(body.emailid) ? body.emailid : [body.emailid];
+                collabator = [...new Set([...collabator, ...newCollaborators])];
+                await data.update({ collaborators: collabator });
+                const content = `
+                <h1>Hello,</h1>
+                <h4>you are invited for the collbaoration of the note created by ${body.username} for the note title: ${data.title} and the description : ${data.description} </h4>
+            `;
+                const subject = `invitation of the collabarartor of the note by ${body.username} `;
+
+                await sendMail(body.emailid, subject, content)
+                return {
+                    code: 200,
+                    message: "the note collabrators added",
+                    collaborators: data.collaborators || [],
+                    success: true
+                }
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal Server Error",
+            success: false
+        }
+    }
+}
+
+
