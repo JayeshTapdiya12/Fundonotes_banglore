@@ -48,6 +48,9 @@ router.post('/:_id/deletelabel', userAuth(process.env.jwt_sceret_key), notesCont
 // delete remainder
 
 // collabtor - object of email
+router.get('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.getcollaborators);
 
+// add the collabator:
+router.post('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.addcollaborators)
 
 export default router;
