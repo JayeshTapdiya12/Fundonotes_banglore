@@ -434,7 +434,7 @@ export const addcollaborators = async (body, id) => {
                 <h1>Hello,</h1>
                 <h4>you are invited for the collbaoration of the note created by ${body.username} for the note title: ${data.title} and the description : ${data.description} </h4>
             `;
-                const subject = `invitation of the collabarartor of the note by ${body.username} `;
+                const subject = `invitation of the collaborators of the note by ${body.username} `;
 
                 await sendMail(body.emailid, subject, content)
                 return {
