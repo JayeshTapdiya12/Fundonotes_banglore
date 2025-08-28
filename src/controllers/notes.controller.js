@@ -199,3 +199,13 @@ export const addcollaborators = async (req, res, next) => {
         });
     }
 }
+
+
+export const deletecollaborators = async (req, res, next) => {
+    try {
+        const data = await notesService.deletecollaborators(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+    }
+}
