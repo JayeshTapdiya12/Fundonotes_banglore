@@ -450,9 +450,56 @@ export const addcollaborators = async (body, id) => {
         return {
             code: 500,
             message: "Internal Server Error",
-            success: false
+            success: false,
+            error: error.message
         }
     }
 }
 
 
+
+export const deletecollaborators = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note not found",
+                success: false
+            }
+        } else {
+            if (!data.collaborators || data.collaborators.length === 0) {
+                return {
+                    code: 400,
+                    message: "there is no collaborators for the note ",
+                    success: false
+                }
+            } else {
+                let collbartor = data.collaborators || [];
+                collbartor = collbartor.filter(item => item !== body.emailid);
+                await data.update({ collaborators: collbartor });
+
+                const content = `
+                <h1>Hello,</h1>
+                <h4>you are removed for the collbaoration of the note created by ${body.username} for the note title: ${data.title} and the description : ${data.description} </h4>
+            `;
+                const subject = `removed of the collaborators of the note by ${body.username} `;
+
+                await sendMail(body.emailid, subject, content);
+                return {
+                    code: 200,
+                    message: "the note collabrators deleted",
+                    collaborators: data.collaborators || [],
+                    success: true
+                }
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
