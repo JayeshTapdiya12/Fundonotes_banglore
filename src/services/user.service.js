@@ -59,7 +59,7 @@ export const login = async (body) => {
     const password_isvalid = await bcrypt.compare(body.password, data.password);
     if (password_isvalid) {
 
-      const token = await jwt.sign({ username: data.firstname, email: data.email, user_id: data.user_id }, process.env.jwt_sceret_key)
+      const token = await jwt.sign({ email: data.email, user_id: data.user_id, username: data.firstName }, process.env.jwt_sceret_key)
 
       return {
         code: 200,
@@ -98,7 +98,17 @@ export const forgetpassword = async (body) => {
     }
   } else {
     const token = jwt.sign({ email: data.email, userName: data.firstName, userId: data.user_id }, process.env.jwt_sceret_key);
-    await sendMail(data.email, token);
+
+    const body = `
+                <h1>Hello,</h1>
+                <p>Click the link below to reset your password:</p>
+                <a href="http://localhost:${process.env.APP_PORT}/api/${process.env.API_VERSION}/users/forget_password/${token}">
+                    Reset Password
+                </a>
+            `;
+    const subject = 'Password Reset Link';
+
+    await sendMail(data.email, subject, body);
 
     return {
       code: 200,
