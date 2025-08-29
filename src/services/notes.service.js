@@ -40,6 +40,7 @@ export const addnote = async (body) => {
     try {
 
         const data = await Notes.create(body);
+        // console.log(data)
         return {
             code: 200,
             message: "sccuseefully get all the notes",
@@ -161,6 +162,14 @@ export const deletenote = async (body, id) => {
                 message: "note doest not exisit"
             }
         } else {
+            // add the condintion of the archived
+            if (data.isArchived === true) {
+                return {
+                    code: 200,
+                    success: false,
+                    message: "the note is archived which can not be deleted",
+                }
+            }
             await data.destroy();
             return {
                 code: 200,
@@ -291,6 +300,8 @@ export const updatelabel = async (body, id) => {
             }
         } else {
             let labels = data.label || [];
+            console.log("Existing labels:", labels);
+            console.log("Label to update:", body.oldlabel);
             if (!labels.includes(body.oldlabel)) {
                 return {
                     code: 404,
@@ -500,6 +511,119 @@ export const deletecollaborators = async (body, id) => {
             message: "Internal server error",
             success: false,
             error: error.message
+        }
+    }
+}
+
+
+// reminder
+
+export const getreminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (!data.reminder) {
+                return {
+                    code: 200,
+                    message: "there is not reminder in the note",
+                    success: true
+                }
+            } else {
+                return {
+                    code: 200,
+                    message: "the reminder is succefully fetched",
+                    success: true,
+                    reminder: data.reminder
+                }
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+
+export const addreminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (data.reminder) {
+                return {
+                    code: 200,
+                    message: "the note already have a reminder",
+                    success: true,
+                    reminder: data.reminder
+                }
+            }
+            await data.update({ reminder: body.reminder });
+            return {
+                code: 200,
+                message: 'the reminder is added succefully',
+                data: data.reminder,
+                success: true
+            }
+
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+export const deletereminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (!data.reminder) {
+                return {
+                    code: 200,
+                    message: "the remidner is not present so cannot delete",
+                    data: data.reminder,
+                    success: false
+                }
+            }
+            data.reminder = null;
+            await data.save();
+            return {
+                code: 200,
+                message: `reminder has been deleted successfully`,
+                data: data.reminder,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            error: error.message,
+            success: false,
+            message: "Internal Server Error"
         }
     }
 }
