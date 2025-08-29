@@ -52,7 +52,7 @@ const Notes = sequelize.define(
             allowNull: true
         },
         reminder: {
-            type: DataTypes.ARRAY(DataTypes.DATE),
+            type: DataTypes.JSON,
             allowNull: true
         }
     },
