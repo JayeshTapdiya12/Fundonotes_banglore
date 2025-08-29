@@ -16,6 +16,20 @@ export const getallnotes = async (req, res, next) => {
     }
 }
 
+export const getnote = async (req, res, next) => {
+    try {
+        const data = await notesService.getnote(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(500).json({
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        });
+    }
+}
+
 
 export const addnote = async (req, res, next) => {
     try {
