@@ -209,3 +209,34 @@ export const deletecollaborators = async (req, res, next) => {
         res.status(data.code).json(data);
     }
 }
+
+
+
+// reminder
+
+export const getreminder = async (req, res, next) => {
+    try {
+        const data = await notesService.getreminder(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+    }
+}
+
+export const addreminder = async (req, res, next) => {
+    try {
+        const data = await notesService.addreminder(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+    }
+}
+
+export const deletereminder = async (req, res, next) => {
+    try {
+        const data = await notesService.deletereminder(req.body, req.params._id);
+        res.status(data.code).json(data);
+    } catch (error) {
+        res.status(data.code).json(data);
+    }
+}
