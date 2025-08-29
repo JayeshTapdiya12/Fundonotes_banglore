@@ -15,7 +15,14 @@ export const getallnotes = async (createdBy, email) => {
                 success: false
             }
         } else {
-            const note = await Notes.findAll({ where: { createdBy: createdBy } });
+            const note = await Notes.findAll({
+                where: {
+                    [Sequelize.Op.or]: [
+                        { createdBy: createdBy },
+                        { collaborators: { [Sequelize.Op.contains]: [email] } }
+                    ],
+                }
+            });
             return {
                 code: 200,
                 message: "sccuseefully get all the notes",
