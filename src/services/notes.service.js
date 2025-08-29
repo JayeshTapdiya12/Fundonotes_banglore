@@ -65,6 +65,34 @@ export const getallnotes = async (createdBy, email) => {
 }
 
 
+export const getnote = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                message: "note did not exisit",
+                success: false
+            }
+        } else {
+            return {
+                code: 200,
+                message: "sccuseefully get  the notes",
+                data: data,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
 export const addnote = async (body) => {
     try {
 
