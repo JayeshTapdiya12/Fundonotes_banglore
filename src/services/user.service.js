@@ -4,46 +4,153 @@ import jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
 dotenv.config();
 
+import { sendMail } from "../utils/emailsender";
+
 export const getalluser = async () => {
   const data = await Users.findAll();
-  return data;
-}
-
-export const signUp = async (body) => {
-  const data = await Users.findOne({ where: { email: body.email } });
-  if (!data) {
-
-    const saltround = 10;
-    const hashPassword = await bcrypt.hash(body.password, saltround);
-    body.password = hashPassword;
-
-    await Users.create(body);
-    return 'the sign up is created succefully'
-  } else {
-    return 'already the user is created';
+  return {
+    code: 200,
+    data: data,
+    succues: true,
+    message: "the user list "
 
   }
-}
+};
 
+
+export const signUp = async (body) => {
+  try {
+    const data = await Users.findOne({ where: { email: body.email } });
+
+    if (!data) {
+      const saltround = 10;
+      const hashPassword = await bcrypt.hash(body.password, saltround);
+      body.password = hashPassword;
+
+      await Users.create(body);
+
+      return {
+        code: 200,
+        success: true,
+        message: "User email is created",
+      };
+    } else {
+      return {
+        code: 200,
+        success: false,
+        message: "User email already exists!",
+      };
+    }
+  } catch (error) {
+    return {
+      code: 500,
+      success: false,
+      message: "An error occurred while signing up the user.",
+    };
+  }
+};
 
 
 export const login = async (body) => {
   const data = await Users.findOne({ where: { email: body.email } });
 
   if (!data) {
-    return 'the email id doesnt exist'
+    return {
+      code: 200,
+
+      succues: false,
+      message: "user email not exist!"
+
+    }
+
   } else {
     const password_isvalid = await bcrypt.compare(body.password, data.password);
     if (password_isvalid) {
 
-      const token = await jwt.sign({ username: data.firstname, email: data.email, user_id: data.user_id }, process.env.jwt_sceret_key)
 
-      return token
+      const token = await jwt.sign({ email: data.email, user_id: data.user_id, username: data.firstName }, process.env.jwt_sceret_key)
+
+      return {
+        code: 200,
+        data: {
+          token: token,
+          name: data.firstName,
+          email: data.email
+        },
+        succues: true,
+        message: "user login succesfully!"
+
+      }
+
     } else {
-      throw new Error("the password is incorrect");
+      return {
+        code: 400,
+
+        succues: false,
+        message: "password is invalid "
+
+      }
     }
   }
+}
 
 
+export const forgetpassword = async (body) => {
+
+  const data = await Users.findOne({ where: { email: body.email } });
+
+  if (!data) {
+    return {
+      code: 400,
+      succues: false,
+      message: "the email does not exist"
+    }
+  } else {
+    const token = jwt.sign({ email: data.email, userName: data.firstName, userId: data.user_id }, process.env.jwt_sceret_key);
+
+    const content = `
+                <h1>Hello,</h1>
+                <p>Click the link below to reset your password:</p>
+                <a href="http://localhost:${process.env.APP_PORT}/api/${process.env.API_VERSION}/users/forget_password/${token}">
+                    Reset Password
+                </a>
+            `;
+    const subject = 'Password Reset Link';
+
+    await sendMail(data.email, subject, content);
+
+    return {
+      code: 200,
+      success: true,
+      message: "Password reset email sent successfully",
+    };
+  }
 
 }
+
+
+
+
+
+export const resetpassword = async (body) => {
+
+  const { email, oldPassword, newPassword } = body;
+  const data = await Users.findOne({ where: { email: email } });
+
+  if (!data) {
+    return { code: 404, success: false, message: "User not found" };
+  }
+  const isMatch = await bcrypt.compare(oldPassword, data.password);
+  if (!isMatch) {
+    return { code: 400, success: false, message: "Old password is incorrect" };
+  }
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await Users.update({
+    password: hashedPassword
+  },
+    { where: { email: email } })
+
+  return { code: 200, success: true, message: "Password updated successfully" };
+
+} 

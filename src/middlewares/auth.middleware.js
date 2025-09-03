@@ -9,21 +9,38 @@ import jwt from 'jsonwebtoken';
  * @param {Object} res
  * @param {Function} next
  */
-export const userAuth = async (req, res, next) => {
-  try {
-    let bearerToken = req.header('Authorization');
-    if (!bearerToken)
-      throw {
-        code: HttpStatus.BAD_REQUEST,
-        message: 'Authorization token is required'
-      };
-    bearerToken = bearerToken.split(' ')[1];
+export const userAuth = (secretKey) => {
+  return async (req, res, next) => {
+    try {
+      let bearerToken = req.header('Authorization');
+      console.log('bearerToken before splitting----->', bearerToken);
 
-    const { user } = await jwt.verify(bearerToken, 'your-secret-key');
-    res.locals.user = user;
-    res.locals.token = bearerToken;
-    next();
-  } catch (error) {
-    next(error);
-  }
+      if (!bearerToken) {
+        throw {
+          code: HttpStatus.BAD_REQUEST,
+          message: 'Authorization token is required'
+        };
+      }
+
+      bearerToken = bearerToken.split(' ')[1];
+      console.log('bearerToken after splitting---->', bearerToken);
+
+      let userDetails = jwt.verify(bearerToken, secretKey);
+      req.body.createdBy = userDetails.user_id;
+      req.body.username = userDetails.username;
+
+      console.log('\n')
+      console.log(jwt.decode(bearerToken));
+
+      console.log("\n")
+
+      console.log("the message in au tmiddle ware the name is =======> ", req.body.username)
+      console.log("message in authmiddle=====>", req.body.createdBy)
+      req.body.Email = userDetails.email;
+      console.log("email", req.body.Email)
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
 };

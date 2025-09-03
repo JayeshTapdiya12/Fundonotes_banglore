@@ -1,0 +1,688 @@
+import { Notes } from '../models/note.model';
+
+import { Users } from '../models/user.model';
+
+import { Sequelize } from "sequelize";
+import { sendMail } from '../utils/emailsender';
+
+export const getallnotes = async (createdBy, email) => {
+    const data = await Users.findOne({ where: { email: email } });
+    try {
+        if (!data) {
+            return {
+                code: 400,
+                message: "email did not exisit",
+                success: false
+            }
+        } else {
+            const note = await Notes.findAll({
+                where: {
+                    [Sequelize.Op.or]: [
+                        { createdBy: createdBy },
+                        { collaborators: { [Sequelize.Op.contains]: [email] } }
+                    ],
+                },
+                order: [['createdAt', 'DESC']],
+
+            })
+
+            // const note = await Notes.findAll({
+            //     where: {
+            //         [Sequelize.Op.or]: [
+            //             { createdBy: createdBy },
+            //             { collaborators: { [Sequelize.Op.contains]: [email] } },
+            //         ],
+            //     },
+            //     limit: 100,
+            //     order: [['createdAt', 'DESC']],
+            // });
+
+            // const note = await Notes.findAll({
+            //     where: {
+            //          createdBy: createdBy
+            //         
+            //     }
+            // })
+
+
+            return {
+                code: 200,
+                message: "sccuseefully get all the notes",
+                data: note,
+                success: true
+            }
+        }
+
+    }
+    catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const getnote = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                message: "note did not exisit",
+                success: false
+            }
+        } else {
+            return {
+                code: 200,
+                message: "sccuseefully get  the notes",
+                data: data,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const addnote = async (body) => {
+    try {
+
+        const data = await Notes.create(body);
+        // console.log(data)
+        return {
+            code: 200,
+            message: "sccuseefully get all the notes",
+            data: data,
+            success: true
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const archived = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                message: "note did not exisit",
+                success: false
+            }
+        } else {
+            data.isArchived = !data.isArchived;
+            await data.save();
+            return {
+                code: 200,
+                message: `Note has been ${data.isArchived ? 'archived' : 'unarchived'} successfully`,
+                data: data,
+                success: true
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const trash = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                success: false,
+                message: "note doest not exisit"
+            }
+        } else {
+            data.isDeleted = !data.isDeleted;
+            await data.save();
+            return {
+                code: 200,
+                message: `Note has been ${data.isDeleted ? 'trash' : 'trash'} successfully`,
+                data: data,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const update = async (body, id) => {
+    try {
+
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                success: false,
+                message: "note doest not exisit"
+            }
+        } else {
+            await data.update({ ...body });
+            return {
+                code: 200,
+                message: `Note has been updated successfully`,
+                data: data,
+                success: true
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        };
+    }
+}
+
+
+export const deletenote = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+
+        if (!data) {
+            return {
+                code: 400,
+                success: false,
+                message: "note doest not exisit"
+            }
+        } else {
+            // add the condintion of the archived
+            if (data.isArchived === true) {
+                return {
+                    code: 200,
+                    success: false,
+                    message: "the note is archived which can not be deleted",
+                }
+            }
+            await data.destroy();
+            return {
+                code: 200,
+                message: `Note has been deleted successfully`,
+                success: true
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        }
+    }
+}
+
+export const notecolor = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                message: "the note is not found",
+                color: body.color,
+                success: false
+            }
+        } else {
+            await data.update({ color: body.color });
+            return {
+                code: 200,
+                message: `Note  color has been updated successfully`,
+                color: body.color,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false,
+        }
+    }
+}
+
+
+
+//labels
+
+export const getlabel = async (body) => {
+    try {
+        const data = await Notes.findAll({
+            where: { createdBy: body.createdBy }, attributes: [
+                [Sequelize.fn("DISTINCT", Sequelize.col("label")), "label"]
+            ],
+            raw: true
+        });
+
+        if (!data || data.length === 0) {
+            return {
+                code: 404,
+                message: "No labels found for this user",
+                labels: [],
+                success: false
+            }
+        }
+        return {
+            code: 200,
+            message: "Labels fetched successfully",
+            labels: data.map(item => item.label),
+            success: true
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+
+export const addlabel = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 400,
+                message: "The note is not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+            console.log(body.label)
+            let newLabels = Array.isArray(body.label) ? body.label : [body.label];
+            labels = [...new Set([...labels, ...newLabels])];
+            await data.update({ label: labels });
+            console.log(data.label)
+            return {
+                code: 200,
+                message: `the label is succfully added : ${data.label}`,
+                data: data,
+                success: true,
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal Server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+export const updatelabel = async (body, id) => {
+    try {
+        const data = await Notes.findAll({ where: { createdBy: body.createdBy } });
+
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+            console.log("Existing labels:", labels);
+            console.log("Label to update:", body.oldlabel);
+            if (!labels.includes(body.oldlabel)) {
+                return {
+                    code: 404,
+                    message: `Label "${body.oldlabel}" not found in this note`,
+                    success: false
+                };
+            }
+            labels = labels.map((l) => (l === body.oldlabel ? body.newlabel : l));
+            // data.label = labels;
+            await data.update({ label: labels });
+            return {
+                code: 200,
+                message: `Label "${body.newlabel}" updated successfully`,
+                labels,
+                success: true
+            };
+
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+export const deletelabel = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note not found",
+                success: false
+            }
+        } else {
+            let labels = data.label || [];
+            if (!labels.includes(body.label)) {
+                return {
+                    code: 404,
+                    message: `Label "${body.label}" not found in this note`,
+                    success: false
+                };
+            }
+            labels = labels.filter(l => l !== body.label);
+
+            await data.update({ label: labels });
+
+            return {
+                code: 200,
+                message: `Label "${body.label}" deleted successfully`,
+                labels,
+                success: true
+            };
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+// collaborators
+
+export const getcollaborators = async (body, id) => {
+    try {
+
+        const data = await Notes.findOne({
+            where: { createdBy: body.createdBy, note_id: id },
+            attributes: ["collaborators"],
+            raw: true
+        });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                collaborators: [],
+                success: false
+            }
+        } else if (!data.collaborators || data.collaborators.length === 0) {
+
+            return {
+                code: 200,
+                message: "the note has 0 collabrators",
+                collaborators: data.collaborators || [],
+                success: true
+            }
+        }
+        else {
+            return {
+                code: 200,
+                message: "the note collabrators",
+                collaborators: data.collaborators || [],
+                success: true
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            error: error.message,
+            success: false
+        }
+    }
+}
+
+
+export const addcollaborators = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "Note not found ",
+                success: false
+            }
+        } else {
+
+            if (!body.emailid || body.emailid.length === 0) {
+                return {
+                    code: 400,
+                    message: "the email is invalid || the email length =0 ",
+                    success: false
+                }
+            } else {
+
+                let collabator = data.collaborators || [];
+                let newCollaborators = Array.isArray(body.emailid) ? body.emailid : [body.emailid];
+                collabator = [...new Set([...collabator, ...newCollaborators])];
+                await data.update({ collaborators: collabator });
+                const content = `
+                <h1>Hello,</h1>
+                <h4>you are invited for the collbaoration of the note created by ${body.username} for the note title: ${data.title} and the description : ${data.description} </h4>
+            `;
+                const subject = `invitation of the collaborators of the note by ${body.username} `;
+
+                await sendMail(body.emailid, subject, content)
+                return {
+                    code: 200,
+                    message: "the note collabrators added",
+                    collaborators: data.collaborators || [],
+                    success: true
+                }
+            }
+        }
+
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal Server Error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+
+
+export const deletecollaborators = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note not found",
+                success: false
+            }
+        } else {
+            if (!data.collaborators || data.collaborators.length === 0) {
+                return {
+                    code: 400,
+                    message: "there is no collaborators for the note ",
+                    success: false
+                }
+            } else {
+                let collbartor = data.collaborators || [];
+                collbartor = collbartor.filter(item => item !== body.emailid);
+                await data.update({ collaborators: collbartor });
+
+                const content = `
+                <h1>Hello,</h1>
+                <h4>you are removed for the collbaoration of the note created by ${body.username} for the note title: ${data.title} and the description : ${data.description} </h4>
+            `;
+                const subject = `removed of the collaborators of the note by ${body.username} `;
+
+                await sendMail(body.emailid, subject, content);
+                return {
+                    code: 200,
+                    message: "the note collabrators deleted",
+                    collaborators: data.collaborators || [],
+                    success: true
+                }
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+
+// reminder
+
+export const getreminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (!data.reminder) {
+                return {
+                    code: 200,
+                    message: "there is not reminder in the note",
+                    success: true
+                }
+            } else {
+                return {
+                    code: 200,
+                    message: "the reminder is succefully fetched",
+                    success: true,
+                    reminder: data.reminder
+                }
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+
+export const addreminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (data.reminder) {
+                return {
+                    code: 200,
+                    message: "the note already have a reminder",
+                    success: true,
+                    reminder: data.reminder
+                }
+            }
+            await data.update({ reminder: body.reminder });
+            return {
+                code: 200,
+                message: 'the reminder is added succefully',
+                data: data.reminder,
+                success: true
+            }
+
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            message: "Internal server error",
+            success: false,
+            error: error.message
+        }
+    }
+}
+
+export const deletereminder = async (body, id) => {
+    try {
+        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        if (!data) {
+            return {
+                code: 404,
+                message: "the note is not found",
+                success: false
+            }
+        } else {
+            if (!data.reminder) {
+                return {
+                    code: 200,
+                    message: "the remidner is not present so cannot delete",
+                    data: data.reminder,
+                    success: false
+                }
+            }
+            data.reminder = null;
+            await data.save();
+            return {
+                code: 200,
+                message: `reminder has been deleted successfully`,
+                data: data.reminder,
+                success: true
+            }
+        }
+    } catch (error) {
+        return {
+            code: 500,
+            error: error.message,
+            success: false,
+            message: "Internal Server Error"
+        }
+    }
+}
