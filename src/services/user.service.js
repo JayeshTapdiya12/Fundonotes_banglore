@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from 'dotenv';
 dotenv.config();
+
 import { sendMail } from "../utils/emailsender";
 
 export const getalluser = async () => {
@@ -14,35 +15,41 @@ export const getalluser = async () => {
     message: "the user list "
 
   }
-}
+};
+
 
 export const signUp = async (body) => {
-  const data = await Users.findOne({ where: { email: body.email } });
-  if (!data) {
+  try {
+    const data = await Users.findOne({ where: { email: body.email } });
 
-    const saltround = 10;
-    const hashPassword = await bcrypt.hash(body.password, saltround);
-    body.password = hashPassword;
+    if (!data) {
+      const saltround = 10;
+      const hashPassword = await bcrypt.hash(body.password, saltround);
+      body.password = hashPassword;
 
-    await Users.create(body);
-    return {
-      code: 200,
+      await Users.create(body);
 
-      succues: true,
-      message: "user email is created"
-
+      return {
+        code: 200,
+        success: true,
+        message: "User email is created",
+      };
+    } else {
+      return {
+        code: 200,
+        success: false,
+        message: "User email already exists!",
+      };
     }
-  } else {
+  } catch (error) {
     return {
-      code: 200,
-
-      succues: false,
-      message: "user email is already exist!"
-
+      code: 500,
+      success: false,
+      message: "An error occurred while signing up the user.",
     };
-
   }
-}
+};
+
 
 export const login = async (body) => {
   const data = await Users.findOne({ where: { email: body.email } });
@@ -55,9 +62,11 @@ export const login = async (body) => {
       message: "user email not exist!"
 
     }
+
   } else {
     const password_isvalid = await bcrypt.compare(body.password, data.password);
     if (password_isvalid) {
+
 
       const token = await jwt.sign({ email: data.email, user_id: data.user_id, username: data.firstName }, process.env.jwt_sceret_key)
 
@@ -99,7 +108,7 @@ export const forgetpassword = async (body) => {
   } else {
     const token = jwt.sign({ email: data.email, userName: data.firstName, userId: data.user_id }, process.env.jwt_sceret_key);
 
-    const body = `
+    const content = `
                 <h1>Hello,</h1>
                 <p>Click the link below to reset your password:</p>
                 <a href="http://localhost:${process.env.APP_PORT}/api/${process.env.API_VERSION}/users/forget_password/${token}">
@@ -108,7 +117,7 @@ export const forgetpassword = async (body) => {
             `;
     const subject = 'Password Reset Link';
 
-    await sendMail(data.email, subject, body);
+    await sendMail(data.email, subject, content);
 
     return {
       code: 200,
