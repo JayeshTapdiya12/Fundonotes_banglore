@@ -36,7 +36,7 @@ router.get('/label', userAuth(process.env.jwt_sceret_key), notesController.getla
 router.post('/:_id/label', userAuth(process.env.jwt_sceret_key), notesController.addlabel);
 
 // update label
-router.put('/:_id/updatelabel', userAuth(process.env.jwt_sceret_key), notesController.updatelabel);
+router.put('/updatelabel', userAuth(process.env.jwt_sceret_key), notesController.updatelabel);
 
 
 // delete the label
@@ -73,6 +73,8 @@ router.delete('/:_id/reminder', userAuth(process.env.jwt_sceret_key), notesContr
 
 // router.put('/:_id/reminder', userAuth(process.jwt_sceret_key), notesController.updatereminder);
 
+
+// done
 
 // collabtor - object of email
 router.get('/:_id/collaborators', userAuth(process.env.jwt_sceret_key), notesController.getcollaborators);

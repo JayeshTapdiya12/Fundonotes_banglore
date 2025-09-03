@@ -154,7 +154,7 @@ export const addlabel = async (req, res, next) => {
 
 export const updatelabel = async (req, res, next) => {
     try {
-        const data = await notesService.updatelabel(req.body, req.params._id);
+        const data = await notesService.updatelabel(req.body);
         res.status(data.code).json(data);
     } catch (error) {
         res.status(500).json({

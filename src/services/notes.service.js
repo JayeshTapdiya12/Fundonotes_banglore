@@ -324,9 +324,11 @@ export const addlabel = async (body, id) => {
             }
         } else {
             let labels = data.label || [];
+            console.log(body.label)
             let newLabels = Array.isArray(body.label) ? body.label : [body.label];
             labels = [...new Set([...labels, ...newLabels])];
             await data.update({ label: labels });
+            console.log(data.label)
             return {
                 code: 200,
                 message: `the label is succfully added : ${data.label}`,
@@ -347,7 +349,7 @@ export const addlabel = async (body, id) => {
 
 export const updatelabel = async (body, id) => {
     try {
-        const data = await Notes.findOne({ where: { createdBy: body.createdBy, note_id: id } });
+        const data = await Notes.findAll({ where: { createdBy: body.createdBy } });
 
         if (!data) {
             return {
@@ -367,8 +369,8 @@ export const updatelabel = async (body, id) => {
                 };
             }
             labels = labels.map((l) => (l === body.oldlabel ? body.newlabel : l));
-            data.label = labels;
-            await data.save();
+            // data.label = labels;
+            await data.update({ label: labels });
             return {
                 code: 200,
                 message: `Label "${body.newlabel}" updated successfully`,
