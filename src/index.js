@@ -31,7 +31,13 @@ app.use(appErrorHandler);
 app.use(genericErrorHandler);
 app.use(notFound);
 app.get('/health', (req, res) => res.send('OK'));
-
+app.get('/', (req, res) => {
+  res.json({
+    status: "success",
+    message: "Fundoo Notes backend is running 🚀",
+    docs: `/api/${api_version}`
+  });
+});
 app.listen(port, host, () => {
   logger.info(`Server started at http://${host}:${port}/api/${api_version}/`);
 });
