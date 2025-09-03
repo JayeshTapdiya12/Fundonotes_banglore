@@ -34,5 +34,6 @@ app.use(notFound);
 app.listen(port, () => {
   logger.info(`Server started at ${host}:${port}/api/${api_version}/`);
 });
+app.get('/health', (req, res) => res.send('OK'));
 
 export default app;
