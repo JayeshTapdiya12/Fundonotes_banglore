@@ -31,8 +31,15 @@ const sequelize = new Sequelize(DATABASE, USERNAME, PASSWORD, {
     min: 0,
     acquire: 30000,
     idle: 10000
+  },
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false
+    }
   }
 });
+
 
 sequelize
   .authenticate()
